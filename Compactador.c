@@ -164,9 +164,10 @@ int main()
 
         int size = 0;
         Codigo codigos[tamanho];
+
         No *raiz;
 
-        *raiz = CriarArvore(fila, &tamanho);
+        *raiz = CriarArvore(fila, &tamanho); // TÁ DANDO ERRADA ESSA LINHAAAA
 
         transcrever(raiz, code, size, codigos);
 
