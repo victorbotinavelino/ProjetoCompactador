@@ -69,7 +69,7 @@ No CriarArvore(No *vetor, int *size)
 
 void transcrever(No *noAtual, Codigo *cod, int tam, Codigo osCodigos[])
 {
-    if(noAtual->caracter == NULL)
+    if(noAtual->caracter == '\0')
     {
         Codigo *codEsquerda = &cod;
         Codigo *codDireita = &cod;
@@ -161,9 +161,11 @@ int main()
         Codigo *code;
         code->codigo = 0;
         code->tamanho = 0;
+
         int size = 0;
         Codigo codigos[tamanho];
         No *raiz;
+
         *raiz = CriarArvore(fila, &tamanho);
 
         transcrever(raiz, code, size, codigos);
