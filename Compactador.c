@@ -11,12 +11,24 @@ typedef struct No
 
 } No;
 
+typedef struct Codigo
+{
+    char caracter;
+    int codigo;
+    int tamanho;
+} Codigo;
+
+
+
 void incluir(No *vetor, int *size, No newNo)
 {
     int i;
     for(i = 0; i < *size; i++)
+    {
         if(newNo.frequencia < vetor[i].frequencia)
             break;
+    }
+
     for(int e = *size; e > i; e--)
         vetor[e] = vetor[e-1];
     vetor[i] = newNo;
@@ -54,6 +66,32 @@ No CriarArvore(No *vetor, int *size)
 
 }
 
+
+void transcrever(No *noAtual, Codigo *cod, int tam, Codigo osCodigos[])
+{
+    if(noAtual->caracter == NULL)
+    {
+        Codigo *codEsquerda = &cod;
+        Codigo *codDireita = &cod;
+
+        codEsquerda->codigo = cod->codigo << 1;
+        codEsquerda->tamanho++;
+
+        codDireita->codigo = cod->codigo << 1 + 1;
+        codDireita->tamanho++;
+
+        transcrever(noAtual->esquerda, codEsquerda, tam, osCodigos);
+        transcrever(noAtual->direita, codDireita, tam, osCodigos);
+    }
+    else
+    {
+        osCodigos[tam] = *cod;
+        osCodigos[tam].caracter = noAtual->caracter;
+        tam++;
+    }
+
+}
+
 int main()
 {
 
@@ -62,14 +100,14 @@ int main()
     *batata = 0;
     printf("%d", arroz);*/
 
-    char teste[20];
-    strcpy(teste, "paralelepipedo");
+    char teste[6];
+    strcpy(teste, "batata");
 
-    No fila[20];
+    No fila[100];
     int tamanho = 0;
     No *anterior;
 
-    for(int i = 0; i < 14; i++)
+    for(int i = 0; i < 6; i++)
     {
         if(tamanho != 0)
         {
@@ -116,12 +154,27 @@ int main()
 
     }
 
- for(int i = 0; i < tamanho; i ++)
+        for(int i = 0; i < tamanho; i ++)
             printf("%c, %d ", fila[i].caracter, fila[i].frequencia);
         printf("\n");
 
-        printf("%d", CriarArvore(fila, &tamanho).frequencia);
+        Codigo *code;
+        code->codigo = 0;
+        code->tamanho = 0;
+        int size = 0;
+        Codigo codigos[tamanho];
+        No *raiz;
+        *raiz = CriarArvore(fila, &tamanho);
+
+        transcrever(raiz, code, size, codigos);
+
+        printf("O primeiro código: %d", codigos[0]);
+
+
+
     //printf("%c, %c, %c, %d, %d, %d", fila[0].caracter, fila[1].caracter, fila[2].caracter, fila[0].frequencia, fila[1].frequencia, fila[2].frequencia);
+
+
 
 
 
