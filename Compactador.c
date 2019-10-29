@@ -55,14 +55,17 @@ No retirar(No *vetor, int *size)
 
 
 
-No *FilaDeNos(char arquivo[], int *tamanho, int tamanhoArquivo)
+void FilaDeNos(char arquivo[], int *tamanho, int tamanhoArquivo, No fila[])
 {
 
-    No *fila = (No*)malloc(sizeof(No*));
-     for(int i = 0; i < tamanhoArquivo; i++)
+        int i;
+     for(i = 0; i < tamanhoArquivo; i++)
     {
+
+        printf("%d", tamanho);
         if(*tamanho != 0)
         {
+
             int existe = 0;
             for(int indice = 0; indice < *tamanho; indice++)
             {
@@ -100,13 +103,13 @@ No *FilaDeNos(char arquivo[], int *tamanho, int tamanhoArquivo)
             novoNo.frequencia = 1;
             incluir(fila, tamanho, novoNo);
 
+
         }
+
 
 
     }
 
-
-    return fila;
 
 }
 
@@ -209,10 +212,14 @@ int main()
         int *tamanhoFuturo = 0;
         int tamanhoAtual = 6;
 
-        No *fila;
-        fila = FilaDeNos(teste, tamanhoFuturo, tamanhoAtual);
+        No fila[256];
+        FilaDeNos(teste, tamanhoFuturo, tamanhoAtual, fila);
 
         printf("%d", tamanhoFuturo);
+
+        for(int i = 0; i < tamanhoFuturo; i ++)
+            printf("%c, %d ", fila[i].caracter, fila[i].frequencia);
+        printf("\n");
 
         /*  -----------------  PARTE 2  ---------------------
 
