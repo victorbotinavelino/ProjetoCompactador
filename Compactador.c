@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
@@ -13,12 +14,16 @@ typedef struct No
 
 } No;
 
+
+
 typedef struct Codigo
 {
     char caracter;
     int codigo;
     int tamanho;
 } Codigo;
+
+
 
 void incluir(No *vetor, int *size, No newNo)
 {
@@ -35,6 +40,9 @@ void incluir(No *vetor, int *size, No newNo)
     (*size)++;
 }
 
+
+
+
 No retirar(No *vetor, int *size)
 {
    No retorno = vetor[0];
@@ -47,22 +55,21 @@ No retirar(No *vetor, int *size)
 
 
 
-No *CriarFilaDeNos(char arquivo[], int *tamanho, int *tamanhoArquivo)
+No *FilaDeNos(char arquivo[], int *tamanho, int tamanhoArquivo)
 {
 
-    No fila[256];
-    No *anterior;
+    No *fila = (No*)malloc(sizeof(No*));
      for(int i = 0; i < tamanhoArquivo; i++)
     {
-        if(&tamanho != 0)
+        if(*tamanho != 0)
         {
             int existe = 0;
-            for(int indice = 0; indice < &tamanho; indice++)
+            for(int indice = 0; indice < *tamanho; indice++)
             {
                 if(fila[indice].caracter == arquivo[i])
                 {
                     fila[indice].frequencia++;
-                    while (indice < (&tamanho)-1 && fila[indice].frequencia > fila[indice+1].frequencia)
+                    while (indice < (*tamanho)-1 && fila[indice].frequencia > fila[indice+1].frequencia)
                     {
                         No aux = fila[indice];
                         fila[indice] = fila[indice+1];
@@ -80,8 +87,8 @@ No *CriarFilaDeNos(char arquivo[], int *tamanho, int *tamanhoArquivo)
                 No novoNo;
                 novoNo.caracter = arquivo[i];
                 novoNo.frequencia = 1;
-                anterior = &novoNo;
-                incluir(fila, &tamanho, novoNo);
+                incluir(fila, tamanho, novoNo);
+
             }
 
         }
@@ -91,13 +98,15 @@ No *CriarFilaDeNos(char arquivo[], int *tamanho, int *tamanhoArquivo)
             No novoNo;
             novoNo.caracter = arquivo[i];
             novoNo.frequencia = 1;
-            anterior = &novoNo;
-            incluir(fila, &tamanho, novoNo);
+            incluir(fila, tamanho, novoNo);
 
         }
 
 
     }
+
+
+    return fila;
 
 }
 
@@ -123,7 +132,7 @@ No CriarArvore(No *vetor, int *size)
 }
 
 
-void transcrever(No *noAtual, Codigo *cod, int tam, Codigo osCodigos[])
+void gerarCodigos(No *noAtual, Codigo *cod, int tam, Codigo osCodigos[])
 {
     if(noAtual->caracter == '\0')
     {
@@ -132,15 +141,16 @@ void transcrever(No *noAtual, Codigo *cod, int tam, Codigo osCodigos[])
 
         codEsquerda->codigo = cod->codigo << 1;
         codEsquerda->tamanho++;
+        int size = 0;
 
-        codDireita->codigo = cod->codigo << 1 + 1;
+        codDireita->codigo = (cod->codigo << 1) + 1;
         codDireita->tamanho++;
 
         noAtual->esquerda = (No*)malloc(sizeof(No*));
         noAtual->direita = (No*)malloc(sizeof(No*));
 
-        transcrever(noAtual->esquerda, codEsquerda, tam, osCodigos);
-        transcrever(noAtual->direita, codDireita, tam, osCodigos);
+        gerarCodigos(noAtual->esquerda, codEsquerda, tam, osCodigos);
+        gerarCodigos(noAtual->direita, codDireita, tam, osCodigos);
     }
     else
     {
@@ -151,7 +161,8 @@ void transcrever(No *noAtual, Codigo *cod, int tam, Codigo osCodigos[])
 
 }
 
-void traduzir(char lista[], Codigo osCodigos[], int tamanho, int tamanhoCod)
+
+void compactar(char lista[], Codigo osCodigos[], int tamanho, int tamanhoCod)
 {
     for(int indice = 0; indice < tamanho; indice++)
     {
@@ -174,7 +185,7 @@ void traduzir(char lista[], Codigo osCodigos[], int tamanho, int tamanhoCod)
 }
 
 
-void reverter(char lista[], Codigo osCodigos[], int tamanho, int tamanhoCod)
+void descompactar(char lista[], Codigo osCodigos[], int tamanho, int tamanhoCod)
 {
     for(int indice = 0; indice < tamanho; tamanho++)
     {
@@ -196,22 +207,21 @@ int main()
         strcpy(teste, "batata");
 
         int *tamanhoFuturo = 0;
-        int *tamanhoAtual = 6;
+        int tamanhoAtual = 6;
 
-        No *fila = CriarFilaDeNos(teste, &tamanhoFuturo, &tamanhoAtual);
+        No *fila;
+        fila = FilaDeNos(teste, tamanhoFuturo, tamanhoAtual);
 
-        for(int i = 0; i < tamanhoFuturo; i ++)
-            printf("%c, %d ", fila[i].caracter, fila[i].frequencia);
-        printf("\n");
+        printf("%d", tamanhoFuturo);
 
-
+        /*  -----------------  PARTE 2  ---------------------
 
         Codigo *code;
         code->codigo = 0;
         code->tamanho = 0;
 
-        int size = 0;
-        Codigo codigos[&tamanhoFuturo];
+
+        Codigo *codigos = (Codigo*)malloc(sizeof(No*));
 
         No *raiz = (No*)malloc(sizeof(No*));
 
@@ -220,7 +230,8 @@ int main()
 
         //printf("batata, %d", CriarArvore(fila, &tamanho).frequencia);
 
-        transcrever(raiz, code, size, codigos);
+        int size = 0;
+        gerarCodigos(raiz, code, size, codigos);
         char eins = codigos[0].codigo;
         char zwei = codigos[1].codigo;
         char drei = codigos[2].codigo;
@@ -232,13 +243,14 @@ int main()
 
         char clonee[6];
         strcpy(clonee, "batata");
-        traduzir(clonee, codigos, 6, 3);
+        compactar(clonee, codigos, 6, 3);
 
 
 
             printf("%d", clonee[0]);
         printf("\n");
 
+        */
 
 
          return 0;
