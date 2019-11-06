@@ -8,7 +8,7 @@
 
 typedef struct No
 {
-    char caracter;
+    unsigned char caracter;
     int frequencia;
     struct No *direita, *esquerda;
 
@@ -49,14 +49,13 @@ No retirar(No *vetor, int *size)
    (*size)--;
    for(int i = 0; i < *size; i++)
         vetor[i] = vetor[i+1];
-    printf("caracter   %c", retorno.caracter);
    return retorno;
 
 }
 
 
 
-void FilaDeNos(char arquivo[], int *tamanho, int tamanhoArquivo, No fila[])
+void FilaDeNos(unsigned char arquivo[], int *tamanho, int tamanhoArquivo, No fila[])
 {
 
         int i;
@@ -115,15 +114,15 @@ void FilaDeNos(char arquivo[], int *tamanho, int tamanhoArquivo, No fila[])
 
 No CriarArvore(No *vetor, int *size)
 {
-    while(*size > 1)
+    while(*size > 3)
     {
         No* newNo=(No*)malloc(sizeof(No));
         No *esquerda = (No*)malloc(sizeof(No));
         *esquerda = retirar(vetor, size);
         No *direita = (No*)malloc(sizeof(No));
         *direita = retirar(vetor, size);
-        newNo->esquerda = &esquerda;
-        newNo->direita = &direita;
+        newNo->esquerda = esquerda;
+        newNo->direita = direita;
         newNo->caracter = '\0';
         newNo->frequencia = esquerda->frequencia + direita->frequencia;
         incluir(vetor, size, *newNo);
@@ -143,15 +142,12 @@ void gerarCodigos(No *noAtual, Codigo *cod, int tam, Codigo osCodigos[])
         Codigo *codEsquerda = &cod;
         Codigo *codDireita = &cod;
 
-        codEsquerda->codigo = cod->codigo << 1;
+        codEsquerda->codigo = (cod->codigo) << 1;
         codEsquerda->tamanho++;
-        int size = 0;
 
         codDireita->codigo = (cod->codigo << 1) + 1;
         codDireita->tamanho++;
 
-        noAtual->esquerda = (No*)malloc(sizeof(No*));
-        noAtual->direita = (No*)malloc(sizeof(No*));
 
         gerarCodigos(noAtual->esquerda, codEsquerda, tam, osCodigos);
         gerarCodigos(noAtual->direita, codDireita, tam, osCodigos);
@@ -160,6 +156,7 @@ void gerarCodigos(No *noAtual, Codigo *cod, int tam, Codigo osCodigos[])
     {
         osCodigos[tam] = *cod;
         osCodigos[tam].caracter = noAtual->caracter;
+        printf("caracter do cod %d, eh %c, frequencia %d \n", tam, osCodigos[tam].caracter, noAtual->frequencia);
         tam++;
     }
 
@@ -207,12 +204,12 @@ void descompactar(char lista[], Codigo osCodigos[], int tamanho, int tamanhoCod)
 int main()
 {
 
-        char teste[8];
-        strcpy(teste, "abacate");
+        unsigned char teste[7];
+        strcpy(teste, "batata");
 
         int *tamanhoFuturo = (int*)malloc(sizeof(int));
         *tamanhoFuturo = 0;
-        int tamanhoAtual = 7;
+        int tamanhoAtual = 6;
 
         No fila[256];
         FilaDeNos(teste, tamanhoFuturo, tamanhoAtual, fila);
@@ -233,7 +230,6 @@ int main()
          int *tamanhooo = (int*)malloc(sizeof(int));
         *tamanhooo = tamanhoAtual;
         No *raiz = (No*)malloc(sizeof(No));
-        printf("batata");
         *raiz = CriarArvore(fila, tamanhooo); // TÁ DANDO ERRADA ESSA LINHAAAA
 
         //printf("batata, %d", CriarArvore(fila, &tamanho).frequencia);
@@ -242,6 +238,7 @@ int main()
         Codigo codigos[256];
 
         int size = 0;
+
         gerarCodigos(raiz, code, size, codigos);
         char eins = codigos[0].codigo;
         char zwei = codigos[1].codigo;
