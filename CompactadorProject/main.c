@@ -40,6 +40,23 @@ void incluir(No *vetor, int *size, No newNo)
     (*size)++;
 }
 
+void arvoreToString(No* raiz)
+                {
+                    printf("[%c-%d", raiz->caracter, raiz->frequencia);
+                    if(raiz->esquerda)
+                    {
+                        printf(" -> ");
+                        arvoreToString(raiz->esquerda);
+                    }
+                    if(raiz->direita)
+                    {
+                        printf(" -> ");
+                        arvoreToString(raiz->direita);
+                    }
+                    printf("]");
+                }
+
+
 
 
 
@@ -55,20 +72,20 @@ No retirar(No *vetor, int *size)
 
 
 
-void FilaDeNos(unsigned char arquivo[], int *tamanho, int tamanhoArquivo, No fila[])
+void FilaDeNos( int *tamanho, No fila[])
 {
 
         int i;
-     for(i = 0; i < tamanhoArquivo; i++)
+        unsigned char* caracterLido;
+        FILE *file = fopen("BATATA.txt", "rb");
+    while(fread(caracterLido, 1,1,file)>= 1)
     {
-
         if(*tamanho != 0)
         {
-
             int existe = 0;
             for(int indice = 0; indice < *tamanho; indice++)
             {
-                if(fila[indice].caracter == arquivo[i])
+                if(fila[indice].caracter == *caracterLido)
                 {
                     fila[indice].frequencia++;
                     while (indice < (*tamanho)-1 && fila[indice].frequencia > fila[indice+1].frequencia)
@@ -87,8 +104,10 @@ void FilaDeNos(unsigned char arquivo[], int *tamanho, int tamanhoArquivo, No fil
             if(existe == 0)
             {
                 No novoNo;
-                novoNo.caracter = arquivo[i];
+                novoNo.caracter = *caracterLido;
                 novoNo.frequencia = 1;
+                novoNo.esquerda = NULL;
+                novoNo.direita  = NULL;
                 incluir(fila, tamanho, novoNo);
 
             }
@@ -98,11 +117,9 @@ void FilaDeNos(unsigned char arquivo[], int *tamanho, int tamanhoArquivo, No fil
         {
 
             No novoNo;
-            novoNo.caracter = arquivo[i];
+            novoNo.caracter = *caracterLido;
             novoNo.frequencia = 1;
             incluir(fila, tamanho, novoNo);
-
-
         }
 
 
@@ -114,7 +131,7 @@ void FilaDeNos(unsigned char arquivo[], int *tamanho, int tamanhoArquivo, No fil
 
 No CriarArvore(No *vetor, int *size)
 {
-    while(*size > 3)
+    while(*size > 1)
     {
         No* newNo=(No*)malloc(sizeof(No));
         No *esquerda = (No*)malloc(sizeof(No));
@@ -139,6 +156,12 @@ void gerarCodigos(No *noAtual, Codigo *cod, int tam, Codigo osCodigos[])
 {
     if(noAtual->caracter == '\0')
     {
+        if(noAtual->esquerda)
+            gerarCodigos(noAtual->esquerda, codEsquerda, tam, osCodigos);
+        else
+             gerarCodigos(noAtual->direita, codDireita, tam, osCodigos);
+
+
         Codigo *codEsquerda = &cod;
         Codigo *codDireita = &cod;
 
@@ -154,6 +177,7 @@ void gerarCodigos(No *noAtual, Codigo *cod, int tam, Codigo osCodigos[])
     }
     else
     {
+
         osCodigos[tam] = *cod;
         osCodigos[tam].caracter = noAtual->caracter;
         printf("caracter do cod %d, eh %c, frequencia %d \n", tam, osCodigos[tam].caracter, noAtual->frequencia);
@@ -204,15 +228,12 @@ void descompactar(char lista[], Codigo osCodigos[], int tamanho, int tamanhoCod)
 int main()
 {
 
-        unsigned char teste[7];
-        strcpy(teste, "batata");
 
         int *tamanhoFuturo = (int*)malloc(sizeof(int));
         *tamanhoFuturo = 0;
-        int tamanhoAtual = 6;
 
         No fila[256];
-        FilaDeNos(teste, tamanhoFuturo, tamanhoAtual, fila);
+        FilaDeNos(tamanhoFuturo, fila);
 
 
 
@@ -226,11 +247,10 @@ int main()
         code->codigo = 0;
         code->tamanho = 0;
 
-
-         int *tamanhooo = (int*)malloc(sizeof(int));
-        *tamanhooo = tamanhoAtual;
         No *raiz = (No*)malloc(sizeof(No));
-        *raiz = CriarArvore(fila, tamanhooo); // TÁ DANDO ERRADA ESSA LINHAAAA
+        *raiz = CriarArvore(fila, tamanhoFuturo);
+
+        //arvoreToString(raiz);
 
         //printf("batata, %d", CriarArvore(fila, &tamanho).frequencia);
 
@@ -248,8 +268,6 @@ int main()
         printf("Os primeiros 3 codigos: %d, %d, %d", eins, zwei, drei);
         printf("\n");
 
-
-        free(tamanhooo);
         free(tamanhoFuturo);
         free(raiz);
         free(code);
