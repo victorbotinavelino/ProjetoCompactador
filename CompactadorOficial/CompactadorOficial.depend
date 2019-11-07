@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1573139005 source:c:\users\u18188\documents\github\projetocompactador\compactadoroficial\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<math.h>
+

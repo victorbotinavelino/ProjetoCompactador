@@ -37,24 +37,24 @@ void incluir(No *vetor, int *size, No newNo)
     for(int e = *size; e > i; e--)
         vetor[e] = vetor[e-1];
     vetor[i] = newNo;
-    (*size)++;
+    (*size)= *size + 1;
 }
 
 void arvoreToString(No* raiz)
-                {
-                    printf("[%c-%d", raiz->caracter, raiz->frequencia);
-                    if(raiz->esquerda)
-                    {
-                        printf(" -> ");
-                        arvoreToString(raiz->esquerda);
-                    }
-                    if(raiz->direita)
-                    {
-                        printf(" -> ");
-                        arvoreToString(raiz->direita);
-                    }
-                    printf("]");
-                }
+{
+    printf("[%c-%d", raiz->caracter, raiz->frequencia);
+    if(raiz->esquerda)
+    {
+        printf(" -> ");
+        arvoreToString(raiz->esquerda);
+    }
+    if(raiz->direita)
+    {
+        printf(" -> ");
+        arvoreToString(raiz->direita);
+    }
+    printf("]");
+}
 
 
 
@@ -75,10 +75,10 @@ No retirar(No *vetor, int *size)
 void FilaDeNos( int *tamanho, No fila[])
 {
 
-        int i;
-        unsigned char* caracterLido;
-        FILE *file = fopen("BATATA.txt", "rb");
-    while(fread(caracterLido, 1,1,file)>= 1)
+    int i;
+    unsigned char* caracterLido;
+    FILE *file = fopen("BATATA.txt", "rb");
+    while(fread(caracterLido, 1,1,file))
     {
         if(*tamanho != 0)
         {
@@ -106,6 +106,8 @@ void FilaDeNos( int *tamanho, No fila[])
                 No novoNo;
                 novoNo.caracter = *caracterLido;
                 novoNo.frequencia = 1;
+                novoNo.direita = (No*)malloc(sizeof(No));
+                novoNo.esquerda = (No*)malloc(sizeof(No));
                 novoNo.esquerda = NULL;
                 novoNo.direita  = NULL;
                 incluir(fila, tamanho, novoNo);
@@ -117,6 +119,10 @@ void FilaDeNos( int *tamanho, No fila[])
         {
 
             No novoNo;
+            novoNo.direita = (No*)malloc(sizeof(No));
+            novoNo.esquerda = (No*)malloc(sizeof(No));
+            novoNo.esquerda = NULL;
+            novoNo.direita  = NULL;
             novoNo.caracter = *caracterLido;
             novoNo.frequencia = 1;
             incluir(fila, tamanho, novoNo);
@@ -138,6 +144,8 @@ No CriarArvore(No *vetor, int *size)
         *esquerda = retirar(vetor, size);
         No *direita = (No*)malloc(sizeof(No));
         *direita = retirar(vetor, size);
+        newNo->esquerda = (No*)malloc(sizeof(No));
+        newNo->direita = (No*)malloc(sizeof(No));
         newNo->esquerda = esquerda;
         newNo->direita = direita;
         newNo->caracter = '\0';
@@ -152,33 +160,40 @@ No CriarArvore(No *vetor, int *size)
 }
 
 
-void gerarCodigos(No *noAtual, Codigo *cod, int tam, Codigo osCodigos[])
+void gerarCodigos(No *noAtual, char* cod, int topo, Codigo osCodigos[], int* qtdCodigos)
 {
     /*if(noAtual->caracter == '\0')
     {*/
-        if(noAtual->esquerda)
-        {
-            cod->codigo = (cod->codigo) << 1;
-            gerarCodigos(noAtual->esquerda, cod, tam, osCodigos);
-        }
-
-        else if(noAtual->direita)
-        {
-            cod->codigo = (cod->codigo << 1) + 1;
-            gerarCodigos(noAtual->direita, cod, tam, osCodigos);
-        }
-
-    //}
-    else
+    if(noAtual->esquerda)
     {
-
-        osCodigos[tam] = *cod;
-        osCodigos[tam].caracter = noAtual->caracter;
-        printf("caracter do cod %d, eh %c, frequencia %d \n", tam, osCodigos[tam].caracter, noAtual->frequencia);
-        tam = tam + 1;
-        printf("aaaa %d\n\n", tam);
+        cod[topo] = '0';
+        gerarCodigos(noAtual->esquerda, cod, topo+1, osCodigos, qtdCodigos);
     }
 
+    if(noAtual->direita)
+    {
+        cod[topo] = '1';
+        gerarCodigos(noAtual->direita, cod, topo+1, osCodigos, qtdCodigos);
+    }
+
+    //}
+    if(noAtual->direita ==  NULL && noAtual->esquerda == NULL);
+    {
+
+        int i = 0;
+        int j = topo-1;
+        osCodigos[*qtdCodigos].tamanho = topo;
+        osCodigos[*qtdCodigos].codigo = 0;
+        for(;i<topo;i++)
+        {
+            if(cod[i] == '1')
+                osCodigos[*qtdCodigos].codigo += pow(2, j--);
+        }
+        osCodigos[*qtdCodigos].caracter = noAtual->caracter;
+        printf("caracter do cod %d, eh %c, frequencia %d \n", *qtdCodigos, osCodigos[*qtdCodigos].caracter, noAtual->frequencia);
+        *qtdCodigos = *qtdCodigos + 1;
+        printf("aaaa %d\n\n", *qtdCodigos);
+    }
 }
 
 
@@ -232,15 +247,15 @@ int main()
 
 
 
-        for(int i = 0; i < *tamanhoFuturo; i ++)
+        /*for(int i = 0; i < *tamanhoFuturo; i ++)
             printf("%c, %d ", fila[i].caracter, fila[i].frequencia);
-        printf("\n");
+        printf("\n");*/
 
 
 
-        Codigo *code = (Codigo*)malloc(sizeof(Codigo));
+        /*Codigo *code = (Codigo*)malloc(sizeof(Codigo));
         code->codigo = 0;
-        code->tamanho = 0;
+        code->tamanho = 0;*/
 
         No *raiz = (No*)malloc(sizeof(No));
         *raiz = CriarArvore(fila, tamanhoFuturo);
@@ -253,8 +268,11 @@ int main()
         Codigo *codigos = (Codigo*)malloc(sizeof(Codigo));
 
         int size = 0;
+        int* qtsCodigos = (int*)malloc(sizeof(int));
+        *qtsCodigos =0;
 
-        gerarCodigos(raiz, code, size, codigos);
+        char code[257];
+        gerarCodigos(raiz, code, size, codigos, qtsCodigos);
         char eins = codigos[0].caracter;
         char zwei = codigos[1].caracter;
         char drei = codigos[2].caracter;
