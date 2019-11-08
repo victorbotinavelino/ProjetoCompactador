@@ -19,7 +19,7 @@ typedef struct No
 
 typedef struct Codigo
 {
-    char caracter;
+    unsigned char caracter;
     int codigo;
     int tamanho;
 } Codigo;
@@ -217,6 +217,7 @@ void compactar(FILE* saida, int* tamanho, No* no, Codigo* cods)
 
 
             fwrite(" ", sizeof(char), 1, saida);
+            fwrite(tamanho, sizeof(int), 1, saida);
             int indice = 0;
 
             while(indice < *tamanho)
@@ -232,8 +233,6 @@ void compactar(FILE* saida, int* tamanho, No* no, Codigo* cods)
                 fwrite(&byte3, sizeof(char), 1, saida);
                 fwrite(&byte4, sizeof(char), 1, saida);
 
-                printf("batata %d", no[indice].frequencia);
-
                 indice++;
 
             }
@@ -245,22 +244,21 @@ void compactar(FILE* saida, int* tamanho, No* no, Codigo* cods)
             int codigoAtual = 0;
             FILE *file = fopen("ABACATE.txt", "rb");
 
-            int indiceee = 0;
             while(fread(&aux, sizeof(char), 1, file))
             {
                 int iii = 0;
-                while(cods[iii].caracter != aux && &cods[indiceee] != NULL)
+                while(cods[iii].caracter != aux && &cods[iii] != NULL)
                 {
-                    // cods[iii] = cods[iii + 1];
+                    // cods[iii] = cods[iii + 1];]
                     iii++;
                 }
-                if(cods[indiceee].caracter == aux)
+                if(cods[iii].caracter == aux)
                 {
 
-                    byte = byte << cods[indiceee].tamanho;
-                    byte += cods[indiceee].codigo;
-                    tamanhoCodigoEmByte += cods[indiceee].tamanho;
-                    while(tamanhoCodigoEmByte >=8)
+                    byte = byte << cods[iii].tamanho;
+                    byte += cods[iii].codigo;
+                    tamanhoCodigoEmByte += cods[iii].tamanho;
+                    while(tamanhoCodigoEmByte >= 8)
                     {
                         unsigned char byteEscrever = byte >> (tamanhoCodigoEmByte - 8);
                         fwrite(&byteEscrever, sizeof(char), 1, saida);
@@ -268,8 +266,6 @@ void compactar(FILE* saida, int* tamanho, No* no, Codigo* cods)
                         byte = byte >> sizeof(int) * 8 - tamanhoCodigoEmByte + 8;
                         tamanhoCodigoEmByte = tamanhoCodigoEmByte - 8;
                     }
-
-                    indiceee++;
                 }
             }
             if(tamanhoCodigoEmByte != 0)
@@ -280,6 +276,41 @@ void compactar(FILE* saida, int* tamanho, No* no, Codigo* cods)
                 int t = 8 - tamanhoCodigoEmByte;
                 fwrite(&t, sizeof(char), 1, saida);
             }
+
+
+
+}
+
+
+
+
+void descompactar(FILE* entrada)
+{
+    unsigned char* tamanho;
+    fread(&tamanho, sizeof(char), 1, entrada);
+    fread(&tamanho, sizeof(char), 1, entrada);
+
+    No* vetorDeNos = (No*)malloc(sizeof(No) * 257);
+
+    unsigned char caracterAtual;
+    int i = 0;
+    for(; i < *tamanho; i++)
+    {
+        No* novoNo =  (No*)malloc(sizeof(No));
+        novoNo->direita = NULL;
+        novoNo->esquerda = NULL;
+        novoNo->caracter = fread(&caracterAtual, sizeof(char), 1, entrada);
+        novoNo->frequencia = fread(&caracterAtual, sizeof(char), 1, entrada);
+        vetorDeNos[i] = *novoNo;
+        i++;
+    }
+
+    int* sizeOfCodigos = (int*)malloc(sizeof(int));
+    *sizeOfCodigos = 0;
+    No *raiz = (No*)malloc(sizeof(No));
+    *raiz = CriarArvore(vetorDeNos, sizeOfCodigos);
+
+    arvoreToString(raiz);
 
 
 
@@ -341,8 +372,11 @@ int main()
         char code[257];
         gerarCodigos(raiz, code, size, codigos, qtsCodigos);
 
+
         if(saida != NULL)
-            compactar(saida, tamanhoFuturo, fila, codigos);
+            compactar(saida, tamanhu, filaCopia, codigos);
+
+        descompactar(saida);
 
         free(tamanhoFuturo);
         free(tamanhu);
