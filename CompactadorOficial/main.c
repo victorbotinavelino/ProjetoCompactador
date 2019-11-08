@@ -211,31 +211,82 @@ void gerarCodigos(No *noAtual, char* cod, int topo, Codigo osCodigos[], int* qtd
 }
 
 
-void compactar(FILE* saida, int* tamanho, No* no ,Codigo* osCodigos)
+void compactar(FILE* saida, int* tamanho, No* no, Codigo* cods)
 {
-    fwrite(' ', sizeof(char), 1, saida);
-
-    unsigned char byte1 = *tamanho & 255;
-    unsigned char byte2 = (*tamanho>>8) & 255;
-    unsigned char byte3 = (*tamanho>>16) & 255;
-    unsigned char byte4 = (*tamanho>>24) & 255;
-
-    fwrite(&byte1, sizeof(char), 1, saida);
-    fwrite(&byte2, sizeof(char), 1, saida);
-    fwrite(&byte3, sizeof(char), 1, saida);
-    fwrite(&byte4, sizeof(char), 1, saida);
 
 
 
+            fwrite(" ", sizeof(char), 1, saida);
+            int indice = 0;
 
+            while(indice < *tamanho)
+            {
+                fwrite(&no[indice].caracter, sizeof(char), 1, saida);
+                unsigned char byte1 = no[indice].frequencia & 255;
+                unsigned char byte2 = (no[indice].frequencia>>8) & 255;
+                unsigned char byte3 = (no[indice].frequencia>>16) & 255;
+                unsigned char byte4 = (no[indice].frequencia>>24) & 255;
 
+                fwrite(&byte1, sizeof(char), 1, saida);
+                fwrite(&byte2, sizeof(char), 1, saida);
+                fwrite(&byte3, sizeof(char), 1, saida);
+                fwrite(&byte4, sizeof(char), 1, saida);
+
+                printf("batata %d", no[indice].frequencia);
+
+                indice++;
+
+            }
+
+            int tamanhoCodigoEmByte = 0;
+            char* falta;
+            int byte = 0;
+            unsigned char aux = 0;
+            int codigoAtual = 0;
+            FILE *file = fopen("ABACATE.txt", "rb");
+
+            int indiceee = 0;
+            while(fread(&aux, sizeof(char), 1, file))
+            {
+                int iii = 0;
+                while(cods[iii].caracter != aux && &cods[indiceee] != NULL)
+                {
+                    // cods[iii] = cods[iii + 1];
+                    iii++;
+                }
+                if(cods[indiceee].caracter == aux)
+                {
+
+                    byte = byte << cods[indiceee].tamanho;
+                    byte += cods[indiceee].codigo;
+                    tamanhoCodigoEmByte += cods[indiceee].tamanho;
+                    while(tamanhoCodigoEmByte >=8)
+                    {
+                        unsigned char byteEscrever = byte >> (tamanhoCodigoEmByte - 8);
+                        fwrite(&byteEscrever, sizeof(char), 1, saida);
+                        byte = byte << sizeof(int) * 8 - tamanhoCodigoEmByte + 8;
+                        byte = byte >> sizeof(int) * 8 - tamanhoCodigoEmByte + 8;
+                        tamanhoCodigoEmByte = tamanhoCodigoEmByte - 8;
+                    }
+
+                    indiceee++;
+                }
+            }
+            if(tamanhoCodigoEmByte != 0)
+            {
+                byte = byte << 8 - tamanhoCodigoEmByte;
+                fwrite(&byte, sizeof(char), 1, saida);
+                fseek(saida, 0, SEEK_SET);
+                int t = 8 - tamanhoCodigoEmByte;
+                fwrite(&t, sizeof(char), 1, saida);
+            }
 
 
 
 }
 
 
-void descompactar(FILE* saida, int* tamanho, No* no ,Codigo* osCodigos)
+/*void descompactar(FILE* saida, int* tamanho, No* no ,Codigo* osCodigos)
 {
     int indice = 0;
     for(; indice < tamanho; tamanho++)
@@ -250,7 +301,7 @@ void descompactar(FILE* saida, int* tamanho, No* no ,Codigo* osCodigos)
 
     }
 
-}
+}*/
 
 int main()
 {
@@ -258,9 +309,13 @@ int main()
 
         int *tamanhoFuturo = (int*)malloc(sizeof(int));
         *tamanhoFuturo = 0;
+        int *tamanhu = (int*)malloc(sizeof(int));
+        *tamanhu = 0;
 
         No* fila = (No*)malloc(sizeof(No)*257);
+        No* filaCopia = (No*)malloc(sizeof(No)*257);
         FilaDeNos(tamanhoFuturo, fila);
+        FilaDeNos(tamanhu, filaCopia);
         FILE* saida = fopen("ABACATE.txt.batata", "wb");
 
 
@@ -268,19 +323,13 @@ int main()
             printf("%c, %d ", fila[i].caracter, fila[i].frequencia);
         printf("\n");*/
 
+        *filaCopia = *fila;
 
 
-        /*Codigo *code = (Codigo*)malloc(sizeof(Codigo));
-        code->codigo = 0;
-        code->tamanho = 0;*/
 
 
         No *raiz = (No*)malloc(sizeof(No));
         *raiz = CriarArvore(fila, tamanhoFuturo);
-
-        //arvoreToString(raiz);
-
-        //printf("batata, %d", CriarArvore(fila, &tamanho).frequencia);
 
 
         Codigo *codigos = (Codigo*)malloc(sizeof(Codigo)*257);
@@ -291,37 +340,18 @@ int main()
 
         char code[257];
         gerarCodigos(raiz, code, size, codigos, qtsCodigos);
-        compactar(saida, tamanhoFuturo, raiz, codigos);
 
-
-        printf("Os primeiros 3 codigos: %c, %c, %c", eins, zwei, drei);
-        printf("\n");
+        if(saida != NULL)
+            compactar(saida, tamanhoFuturo, fila, codigos);
 
         free(tamanhoFuturo);
+        free(tamanhu);
         free(raiz);
         free(code);
 
 
-/*  -----------------  PARTE 2  ---------------------
-        char clonee[6];
-        strcpy(clonee, "batata");
-        compactar(clonee, codigos, 6, 3);
-
-
-
-            printf("%d", clonee[0]);
-        printf("\n");
-
-        */
-
 
          return 0;
-
-
-    //printf("%c, %c, %c, %d, %d, %d", fila[0].caracter, fila[1].caracter, fila[2].caracter, fila[0].frequencia, fila[1].frequencia, fila[2].frequencia);
-
-
-
 
 
 
