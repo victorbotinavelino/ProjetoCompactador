@@ -151,7 +151,7 @@ No CriarArvore(No *vetor, int *size)
         No* newNo=(No*)malloc(sizeof(No));
         No *esquerda = (No*)malloc(sizeof(No));
         *esquerda = retirar(vetor, size);
-        No *direita = (No*)malloc(sizeof(No));(*osCodigos)[*qtdCodigos].caracter
+        No *direita = (No*)malloc(sizeof(No));
         *direita = retirar(vetor, size);
         newNo->esquerda = (No*)malloc(sizeof(No));
         newNo->direita = (No*)malloc(sizeof(No));
@@ -183,7 +183,7 @@ void gerarCodigos(No *noAtual, char cod[], int topo, Codigo *osCodigos[], int *q
                     for(;i <= topo;i++)
                     {
                         if(cod[i] == '1')
-                                (*osCodigos)[*qtdCodigos].codigo += pow(2, j--);
+                                (*osCodigos)[*qtdCodigos].codigo += pow(2, --j);
                         //printf("kehehe, % d aaaa\n", (*osCodigos)[*qtdCodigos].codigo);
                     }
 
@@ -196,7 +196,7 @@ void gerarCodigos(No *noAtual, char cod[], int topo, Codigo *osCodigos[], int *q
 
         if(noAtual->esquerda)
         {
-            int indice = topo+3;
+            int indice = topo+2;
             char codEsq[indice];
             int i;
             for(i = 0; i <= topo; i++)
@@ -271,7 +271,8 @@ void compactar(char* arquivoSaida, short int* tamanho, No* no, Codigo* cods, cha
                     byte = byte << cods[iii].tamanho;
                     byte += cods[iii].codigo;
                     tamanhoCodigoEmByte += cods[iii].tamanho;
-                    //printf("cods[iii].tamanho: %d",cods[iii].tamanho);
+                    printf("cods[iii].codigo: %d, %d, %c\n",cods[iii].codigo, cods[iii].tamanho, aux);
+                    printf("olha esse byte: %d\n", byte);
                     while(tamanhoCodigoEmByte >= 8)
                     {
 
@@ -350,18 +351,18 @@ void descompactar(char* nomeArquivo)
     char* newArq = (char*)malloc(240 * sizeof(char));
     strncpy(newArq, nomeArquivo, stringSize);
     newArq[stringSize] = '\0';
-    FILE* novoArquivo = fopen(newArq, "w");
+    FILE* novoArquivo = fopen(newArq, "wb");
 
     char ultimoByte = 0;
+    No *ponteiro = raiz;
 
     while(fread(&caracterAtual, sizeof(char), 1, entrada))
     {
         int teste = getc(entrada);
         if (teste == EOF)
                 ultimoByte = 1;
-        ungetc(teste, novoArquivo);
+        fseek(novoArquivo, -1, SEEK_CUR);
 
-        No *ponteiro = raiz;
         for(int c = 0; c < 8; c++)
         {
             if (ultimoByte)
@@ -380,7 +381,6 @@ void descompactar(char* nomeArquivo)
             {
                 ponteiro = ponteiro->direita;
             }
-
             else
             {
                 ponteiro = ponteiro->esquerda;
@@ -391,11 +391,13 @@ void descompactar(char* nomeArquivo)
 
         }
 
-        free(sizeOfCodigos);
-        free(ponteiro);
-        free(raiz);
+
 
     }
+
+     free(sizeOfCodigos);
+
+    free(raiz);
 
     fclose(entrada);
     fclose(novoArquivo);
