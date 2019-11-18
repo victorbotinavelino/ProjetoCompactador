@@ -140,6 +140,7 @@ void FilaDeNos(int *tamanho, No* fila, char* nomeArquivo)
     }
 
     fclose(file);
+    free(file);
 
 }
 
@@ -182,13 +183,19 @@ void gerarCodigos(No *noAtual, char cod[], int topo, Codigo *osCodigos[], int *q
                     (*osCodigos)[*qtdCodigos].codigo = 0;
                     for(;i <= topo;i++)
                     {
+                        int aux = j - i;
                         if(cod[i] == '1')
-                                (*osCodigos)[*qtdCodigos].codigo += pow(2, --j);
+                        {
+                            (*osCodigos)[*qtdCodigos].codigo += pow(2, aux);
+
+                        }
+
                         //printf("kehehe, % d aaaa\n", (*osCodigos)[*qtdCodigos].codigo);
+
                     }
 
                     (*osCodigos)[*qtdCodigos].caracter = noAtual->caracter;
-                    //printf("caracter do cod n%d, ou seja, O CODIGO EH: %d,,, eh %c, frequencia %d, tamanho %d \n", *qtdCodigos, (*osCodigos)[*qtdCodigos].codigo,(*osCodigos)[*qtdCodigos].caracter, noAtual->frequencia, topo);
+                    //printf("caracter do cod n%d, ou seja, O CODIGO EH: %d    eh %c, frequencia %d, tamanho %d \n", *qtdCodigos, (*osCodigos)[*qtdCodigos].codigo,(*osCodigos)[*qtdCodigos].caracter, noAtual->frequencia, topo);
                     *qtdCodigos = *qtdCodigos + 1;
                     //printf("aaaa %d\n\n", *qtdCodigos);
             }
@@ -196,7 +203,8 @@ void gerarCodigos(No *noAtual, char cod[], int topo, Codigo *osCodigos[], int *q
 
         if(noAtual->esquerda)
         {
-            int indice = topo+2;
+            int indice = 0;
+            indice = topo+3;
             char codEsq[indice];
             int i;
             for(i = 0; i <= topo; i++)
@@ -220,6 +228,9 @@ void gerarCodigos(No *noAtual, char cod[], int topo, Codigo *osCodigos[], int *q
             gerarCodigos(noAtual->direita, codDir, topo+1, osCodigos, qtdCodigos);
         }
 
+        free(noAtual);
+
+
 }
 
 
@@ -229,7 +240,11 @@ void compactar(char* arquivoSaida, short int* tamanho, No* no, Codigo* cods, cha
 
             int indice = 0;
             FILE* file = fopen(nomeArquivo, "rb");
+            free(nomeArquivo);
+           // free(nomeArquivo);
             FILE* saida = fopen(arquivoSaida, "wb");
+            free(arquivoSaida);
+           // free(arquivoSaida);
             fwrite(&indice, sizeof(char), 1, saida);
             short int auxiliar = *tamanho;
             fwrite(&auxiliar, sizeof(short int), 1, saida);
@@ -251,7 +266,7 @@ void compactar(char* arquivoSaida, short int* tamanho, No* no, Codigo* cods, cha
                 indice++;
             }
 
-            int tamanhoCodigoEmByte = 0;
+            int tamanhoCodByte = 0;
             char* falta;
             int byte = 0;
             unsigned char aux = 0;
@@ -267,31 +282,31 @@ void compactar(char* arquivoSaida, short int* tamanho, No* no, Codigo* cods, cha
                 }
                 if(cods[iii].caracter == aux)
                 {
-
                     byte = byte << cods[iii].tamanho;
                     byte += cods[iii].codigo;
-                    tamanhoCodigoEmByte += cods[iii].tamanho;
-                    printf("cods[iii].codigo: %d, %d, %c\n",cods[iii].codigo, cods[iii].tamanho, aux);
-                    printf("olha esse byte: %d\n", byte);
-                    while(tamanhoCodigoEmByte >= 8)
-                    {
+                    tamanhoCodByte += cods[iii].tamanho;
+                    //printf("[%d]: %d, %d, %c\n", iii, byte, cods[iii].tamanho, aux);
+                    //printf("olha esse byte: %d\n", byte);
 
-                        unsigned char byteEscrever = byte >> (tamanhoCodigoEmByte - 8);
+                    while(tamanhoCodByte >= 8)
+                    {
+                        unsigned char byteEscrever = byte >> (tamanhoCodByte - 8);
                         fwrite(&byteEscrever, sizeof(char), 1, saida);
-                        byte = byte << sizeof(int) * 8 - tamanhoCodigoEmByte + 8;
-                        byte = byte >> sizeof(int) * 8 - tamanhoCodigoEmByte + 8;
-                        tamanhoCodigoEmByte = tamanhoCodigoEmByte - 8;
+                        byte = byte << sizeof(int) * 8 - tamanhoCodByte + 8;
+                        byte = byte >> sizeof(int) * 8 - tamanhoCodByte + 8;
+                        tamanhoCodByte = tamanhoCodByte - 8;
 
                     }
+
                 }
             }
-            if(tamanhoCodigoEmByte != 0)
+            if(tamanhoCodByte != 0)
             {
-                byte = byte << 8 - tamanhoCodigoEmByte;
+                byte = byte << 8 - tamanhoCodByte;
                 fwrite(&byte, sizeof(char), 1, saida);
                 fseek(saida, 0, SEEK_SET);
-                char t = 8 - tamanhoCodigoEmByte;
-                fwrite(&t, sizeof(char), 1, saida);
+                char trash = 8 - tamanhoCodByte;
+                fwrite(&trash, sizeof(char), 1, saida);
             }
 
 
@@ -302,14 +317,17 @@ void compactar(char* arquivoSaida, short int* tamanho, No* no, Codigo* cods, cha
 
 }
 
-int bitExtracted(int number, int k, int p)
-{
-    return (((1 << k) - 1) & (number >> (p - 1)));
-}
-
-
 void descompactar(char* nomeArquivo)
 {
+    int* sizeOfCodigos = (int*)malloc(sizeof(int));
+    No *raiz = (No*)malloc(sizeof(No));
+
+    int stringSize = (strlen(nomeArquivo) - 4);
+    char* newArq = (char*)malloc(240 * sizeof(char));
+    strncpy(newArq, nomeArquivo, stringSize);
+    newArq[stringSize] = '\0';
+
+    FILE* novoArquivo = fopen(newArq, "wb");
     FILE* entrada = fopen(nomeArquivo, "rb");
     unsigned char lixo;
     fread(&lixo, sizeof(char), 1, entrada);
@@ -340,43 +358,45 @@ void descompactar(char* nomeArquivo)
         fread(&caracterAtual, sizeof(char), 1, entrada);
     }
 
-    int* sizeOfCodigos = (int*)malloc(sizeof(int));
+
     *sizeOfCodigos = tamanho;
-    No *raiz = (No*)malloc(sizeof(No));
     *raiz = CriarArvore(vetorDeNos, sizeOfCodigos);
-
-    arvoreToString(raiz);
-
-    int stringSize = (strlen(nomeArquivo) - 7);
-    char* newArq = (char*)malloc(240 * sizeof(char));
-    strncpy(newArq, nomeArquivo, stringSize);
-    newArq[stringSize] = '\0';
-    FILE* novoArquivo = fopen(newArq, "wb");
 
     char ultimoByte = 0;
     No *ponteiro = raiz;
 
-    while(fread(&caracterAtual, sizeof(char), 1, entrada))
+    while(fread(&caracterAtual, sizeof(char), 1, entrada)>=1)
     {
-        int teste = getc(entrada);
-        if (teste == EOF)
-                ultimoByte = 1;
-        fseek(novoArquivo, -1, SEEK_CUR);
 
-        for(int c = 0; c < 8; c++)
+        int atual, proximo, fim;
+        unsigned char aux = caracterAtual;
+        int c = 0;
+
+        atual = ftell(entrada);
+        fseek(entrada, 0, SEEK_END);
+        fim = ftell(entrada);
+        fseek(entrada, atual, SEEK_SET);
+
+        if(fim == atual)
+            ultimoByte = 1;
+
+        for(; c < 8; c++)
         {
-            if (ultimoByte)
-                if (c == (8 - lixo))
-                    break;
 
             if(ponteiro->esquerda == NULL && ponteiro->direita == NULL)
             {
                 fwrite(&ponteiro->caracter, sizeof(char), 1, novoArquivo);
                 ponteiro = raiz;
-
+                if(c==8)
+                    break;
             }
 
-            int theBit = caracterAtual & 0b10000000;
+            if (ultimoByte)
+                if (c == (8 - lixo))
+                        break;
+
+
+            int theBit = aux & 0b10000000;
             if(theBit)
             {
                 ponteiro = ponteiro->direita;
@@ -386,7 +406,8 @@ void descompactar(char* nomeArquivo)
                 ponteiro = ponteiro->esquerda;
             }
 
-            caracterAtual<<= 1;
+            aux<<= 1;
+
 
 
         }
@@ -395,22 +416,18 @@ void descompactar(char* nomeArquivo)
 
     }
 
-     free(sizeOfCodigos);
-
+    free(sizeOfCodigos);
     free(raiz);
-
     fclose(entrada);
     fclose(novoArquivo);
 }
 
 
-
-
-
-int main()
+void acionarCompactador()
 {
+
         char* arquivo = (char*)malloc(240 * sizeof(char));
-        printf("Compactador Batata\n");
+        printf("Compactador SAV\n");
         printf("--------------------------\n");
         printf("Digite o caminho do arquivo a ser manipulado: \n");
         scanf("%s", arquivo);
@@ -418,11 +435,26 @@ int main()
         printf("\n\n Se deseja compactar, digite 1, caso queira descompactar, digite 2 \n");
         char resposta;
         char respostas[1];
-        scanf("%s", respostas);
+        scanf("%c", respostas);
         resposta = respostas[0];
 
          if(resposta == '1')
         {
+            int tamSaida = strlen(arquivo) + 8;
+            char* arquivoSaida = (char*)malloc(sizeof(char) * tamSaida);
+            strcpy(arquivoSaida, arquivo);
+            arquivoSaida[strlen(arquivo) + 1] = '\0';
+            strcat(arquivoSaida, ".sav");
+
+             Codigo* codigos = (int*)malloc(sizeof(int)*257);
+
+            int* qtsCodigos = (int*)malloc(sizeof(int));
+            *qtsCodigos = 0;
+
+            char code[1];
+            code[0] = '\0';
+            int zero = 0;
+
              int *tamanhoFuturo = (int*)malloc(sizeof(int));
             *tamanhoFuturo = 0;
             int *tamanhu = (int*)malloc(sizeof(int));
@@ -436,42 +468,44 @@ int main()
             *filaCopia = *fila;
             No *raiz = (No*)malloc(sizeof(No));
             *raiz = CriarArvore(fila, tamanhoFuturo);
-            arvoreToString(raiz);
+            free(fila);
             printf("\n\n \n\n \n\n \n\n ");
 
 
-            Codigo* codigos = (int*)malloc(sizeof(int)*257);
 
-            int* qtsCodigos = (int*)malloc(sizeof(int));
-            *qtsCodigos = 0;
-
-            char code[1];
-            code[0] = '\0';
-            int numeroZero = 0;
-            gerarCodigos(raiz, code, numeroZero, &codigos, qtsCodigos);
-
-            char* arquivoSaida = (char*)malloc(240 * sizeof(char));
-            strcpy(arquivoSaida, arquivo);
-            strcat(arquivoSaida, ".batata");
+            gerarCodigos(raiz, code, zero, &codigos, qtsCodigos);
+            free(tamanhoFuturo);
+            free(qtsCodigos);
 
             compactar(arquivoSaida, tamanhu, filaCopia, codigos, arquivo);
+            free(codigos);
+            printf("\n\nCOMPACTADO COM SUCESSO!!!");
 
-            printf("\n\n    COMPACTADO COM SUCESSO!!!");
 
-            free(tamanhoFuturo);
             free(tamanhu);
-            free(raiz);
             free(code);
 
         }
         else if(resposta == '2')
         {
             descompactar(arquivo);
-             printf("\n\n    DESCOMPACTADO COM SUCESSO!!!");
+            free(arquivo);
+             printf("\n\nDESCOMPACTADO COM SUCESSO!!!");
         }
+        printf("\n----------------------------------------------------------");
+        printf("\n\nCaso deseje abortar o programa, digite 1, caso o contrario, 2\n");
+        char continuar[1];
+        scanf("%s", continuar);
+        if(continuar[0] == '2')
+            acionarCompactador();
 
 
+}
 
+
+int main()
+{
+        acionarCompactador();
         return 0;
 }
 
